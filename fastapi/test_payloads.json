@@ -1,0 +1,110 @@
+[
+  { "type": "plx", "device_id": "oxi-001", "ts_unix": 1715605200.0, "seq": 1,  "spo2": 98.5, "pulse": 72,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-001", "ts_unix": 1715605201.0, "seq": 2,  "spo2": 98.2, "pulse": 74,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-001", "ts_unix": 1715605202.0, "seq": 3,  "spo2": 97.9, "pulse": 71,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-001", "ts_unix": 1715605203.0, "seq": 4,  "spo2": 98.7, "pulse": 70,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-001", "ts_unix": 1715605204.0, "seq": 5,  "spo2": 98.9, "pulse": 73,  "status": "ok" },
+
+  { "type": "plx", "device_id": "oxi-002", "ts_unix": 1715605205.0, "seq": 10, "spo2": 97.8, "pulse": 68,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-002", "ts_unix": 1715605206.0, "seq": 11, "spo2": 98.1, "pulse": 69,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-002", "ts_unix": 1715605207.0, "seq": 12, "spo2": 97.9, "pulse": 70,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-002", "ts_unix": 1715605208.0, "seq": 13, "spo2": 98.3, "pulse": 71,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-002", "ts_unix": 1715605209.0, "seq": 14, "spo2": 98.0, "pulse": 72,  "status": "ok" },
+
+  { "type": "plx", "device_id": "oxi-003", "ts_unix": 1715605210.0, "seq": 20, "spo2": 99.0, "pulse": 76,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-003", "ts_unix": 1715605211.0, "seq": 21, "spo2": 98.8, "pulse": 78,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-003", "ts_unix": 1715605212.0, "seq": 22, "spo2": 98.6, "pulse": 77,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-003", "ts_unix": 1715605213.0, "seq": 23, "spo2": 98.4, "pulse": 79,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-003", "ts_unix": 1715605214.0, "seq": 24, "spo2": 98.7, "pulse": 75,  "status": "ok" },
+
+  { "type": "plx", "device_id": "oxi-004", "ts_unix": 1715605215.0, "seq": 30, "spo2": 97.5, "pulse": 65,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-004", "ts_unix": 1715605216.0, "seq": 31, "spo2": 97.9, "pulse": 67,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-004", "ts_unix": 1715605217.0, "seq": 32, "spo2": 98.1, "pulse": 69,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-004", "ts_unix": 1715605218.0, "seq": 33, "spo2": 98.0, "pulse": 70,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-004", "ts_unix": 1715605219.0, "seq": 34, "spo2": 97.7, "pulse": 68,  "status": "ok" },
+
+  { "type": "plx", "device_id": "oxi-005", "ts_unix": 1715605220.0, "seq": 40, "spo2": 98.3, "pulse": 80,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-005", "ts_unix": 1715605221.0, "seq": 41, "spo2": 98.1, "pulse": 78,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-005", "ts_unix": 1715605222.0, "seq": 42, "spo2": 97.9, "pulse": 77,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-005", "ts_unix": 1715605223.0, "seq": 43, "spo2": 98.0, "pulse": 79,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-005", "ts_unix": 1715605224.0, "seq": 44, "spo2": 98.2, "pulse": 81,  "status": "ok" },
+
+  { "type": "plx", "device_id": "oxi-006", "ts_unix": 1715605225.0, "seq": 50, "spo2": 96.8, "pulse": 64,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-006", "ts_unix": 1715605226.0, "seq": 51, "spo2": 97.2, "pulse": 66,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-006", "ts_unix": 1715605227.0, "seq": 52, "spo2": 97.5, "pulse": 67,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-006", "ts_unix": 1715605228.0, "seq": 53, "spo2": 97.8, "pulse": 65,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-006", "ts_unix": 1715605229.0, "seq": 54, "spo2": 98.0, "pulse": 68,  "status": "ok" },
+
+  { "type": "plx", "device_id": "oxi-007", "ts_unix": 1715605230.0, "seq": 60, "spo2": 98.4, "pulse": 71,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-007", "ts_unix": 1715605231.0, "seq": 61, "spo2": 98.5, "pulse": 72,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-007", "ts_unix": 1715605232.0, "seq": 62, "spo2": 98.3, "pulse": 70,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-007", "ts_unix": 1715605233.0, "seq": 63, "spo2": 98.1, "pulse": 69,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-007", "ts_unix": 1715605234.0, "seq": 64, "spo2": 98.6, "pulse": 73,  "status": "ok" },
+
+  { "type": "plx", "device_id": "oxi-008", "ts_unix": 1715605235.0, "seq": 70, "spo2": 97.9, "pulse": 74,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-008", "ts_unix": 1715605236.0, "seq": 71, "spo2": 97.8, "pulse": 73,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-008", "ts_unix": 1715605237.0, "seq": 72, "spo2": 97.7, "pulse": 75,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-008", "ts_unix": 1715605238.0, "seq": 73, "spo2": 98.0, "pulse": 76,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-008", "ts_unix": 1715605239.0, "seq": 74, "spo2": 98.2, "pulse": 77,  "status": "ok" },
+
+  { "type": "plx", "device_id": "oxi-009", "ts_unix": 1715605240.0, "seq": 80, "spo2": 98.9, "pulse": 82,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-009", "ts_unix": 1715605241.0, "seq": 81, "spo2": 98.7, "pulse": 81,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-009", "ts_unix": 1715605242.0, "seq": 82, "spo2": 98.5, "pulse": 80,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-009", "ts_unix": 1715605243.0, "seq": 83, "spo2": 98.4, "pulse": 79,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-009", "ts_unix": 1715605244.0, "seq": 84, "spo2": 98.3, "pulse": 78,  "status": "ok" },
+
+  { "type": "plx", "device_id": "oxi-010", "ts_unix": 1715605245.0, "seq": 90, "spo2": 97.6, "pulse": 66,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-010", "ts_unix": 1715605246.0, "seq": 91, "spo2": 97.8, "pulse": 67,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-010", "ts_unix": 1715605247.0, "seq": 92, "spo2": 97.9, "pulse": 68,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-010", "ts_unix": 1715605248.0, "seq": 93, "spo2": 98.0, "pulse": 69,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-010", "ts_unix": 1715605249.0, "seq": 94, "spo2": 98.1, "pulse": 70,  "status": "ok" },
+
+ 
+  { "type": "plx", "device_id": "oxi-attack-01", "ts_unix": 1715605250.0, "seq": 1000, "spo2": 80.0, "pulse": 140, "status": "alert" },
+  { "type": "plx", "device_id": "oxi-attack-01", "ts_unix": 1715605250.1, "seq": 1001, "spo2": 79.0, "pulse": 145, "status": "alert" },
+  { "type": "plx", "device_id": "oxi-attack-01", "ts_unix": 1715605250.2, "seq": 1002, "spo2": 78.5, "pulse": 150, "status": "error" },
+  { "type": "plx", "device_id": "oxi-attack-01", "ts_unix": 1715605250.3, "seq": 1003, "spo2": 82.0, "pulse": 155, "status": "error" },
+  { "type": "plx", "device_id": "oxi-attack-01", "ts_unix": 1715605250.4, "seq": 1004, "spo2": 81.0, "pulse": 148, "status": "alert" },
+
+  { "type": "plx", "device_id": "oxi-attack-02", "ts_unix": 1715605251.0, "seq": 2000, "spo2": 65.0, "pulse": 180, "status": "error" },
+  { "type": "plx", "device_id": "oxi-attack-02", "ts_unix": 1715605251.1, "seq": 2005, "spo2": 60.0, "pulse": 190, "status": "error" },
+  { "type": "plx", "device_id": "oxi-attack-02", "ts_unix": 1715605251.2, "seq": 2010, "spo2": 58.0, "pulse": 195, "status": "error" },
+  { "type": "plx", "device_id": "oxi-attack-02", "ts_unix": 1715605251.3, "seq": 2015, "spo2": 62.0, "pulse": 185, "status": "alert" },
+  { "type": "plx", "device_id": "oxi-attack-02", "ts_unix": 1715605251.4, "seq": 2020, "spo2": 59.0, "pulse": 200, "status": "error" },
+
+  { "type": "plx", "device_id": "spoof-001", "ts_unix": 1715605252.0, "seq": 3000, "spo2": 92.0, "pulse": 130, "status": "ok" },
+  { "type": "plx", "device_id": "spoof-001", "ts_unix": 1715605252.05, "seq": 3001, "spo2": 91.0, "pulse": 135, "status": "ok" },
+  { "type": "plx", "device_id": "spoof-001", "ts_unix": 1715605252.10, "seq": 3002, "spo2": 90.0, "pulse": 140, "status": "ok" },
+  { "type": "plx", "device_id": "spoof-001", "ts_unix": 1715605252.15, "seq": 3003, "spo2": 89.0, "pulse": 145, "status": "ok" },
+  { "type": "plx", "device_id": "spoof-001", "ts_unix": 1715605252.20, "seq": 3004, "spo2": 88.0, "pulse": 150, "status": "ok" },
+
+  { "type": "plx", "device_id": "oxi-burst-01", "ts_unix": 1715605253.0,  "seq": 4000, "spo2": 96.0, "pulse": 100, "status": "ok" },
+  { "type": "plx", "device_id": "oxi-burst-01", "ts_unix": 1715605253.01, "seq": 4001, "spo2": 96.5, "pulse": 105, "status": "ok" },
+  { "type": "plx", "device_id": "oxi-burst-01", "ts_unix": 1715605253.02, "seq": 4002, "spo2": 97.0, "pulse": 110, "status": "ok" },
+  { "type": "plx", "device_id": "oxi-burst-01", "ts_unix": 1715605253.03, "seq": 4003, "spo2": 97.5, "pulse": 115, "status": "ok" },
+  { "type": "plx", "device_id": "oxi-burst-01", "ts_unix": 1715605253.04, "seq": 4004, "spo2": 98.0, "pulse": 120, "status": "ok" },
+
+  { "type": "plx", "device_id": "oxi-malware", "ts_unix": 1715605254.0,  "seq": 5000, "spo2": 85.0, "pulse": 150, "status": "alert" },
+  { "type": "plx", "device_id": "oxi-malware", "ts_unix": 1715605254.01, "seq": 5001, "spo2": 84.0, "pulse": 155, "status": "alert" },
+  { "type": "plx", "device_id": "oxi-malware", "ts_unix": 1715605254.02, "seq": 5002, "spo2": 83.0, "pulse": 160, "status": "error" },
+  { "type": "plx", "device_id": "oxi-malware", "ts_unix": 1715605254.03, "seq": 5003, "spo2": 82.0, "pulse": 165, "status": "error" },
+  { "type": "plx", "device_id": "oxi-malware", "ts_unix": 1715605254.04, "seq": 5004, "spo2": 81.0, "pulse": 170, "status": "error" },
+
+  { "type": "plx", "device_id": "oxi-scan-01", "ts_unix": 1715605255.0,  "seq": 6000, "spo2": 97.0, "pulse": 90,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-scan-01", "ts_unix": 1715605255.01, "seq": 6001, "spo2": 97.2, "pulse": 95,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-scan-01", "ts_unix": 1715605255.02, "seq": 6002, "spo2": 97.4, "pulse": 100, "status": "ok" },
+  { "type": "plx", "device_id": "oxi-scan-01", "ts_unix": 1715605255.03, "seq": 6003, "spo2": 97.6, "pulse": 105, "status": "ok" },
+  { "type": "plx", "device_id": "oxi-scan-01", "ts_unix": 1715605255.04, "seq": 6004, "spo2": 97.8, "pulse": 110, "status": "ok" },
+
+  { "type": "plx", "device_id": "unknown-001", "ts_unix": 1715605256.0,  "seq": 7000, "spo2": 50.0, "pulse": 190, "status": "error" },
+  { "type": "plx", "device_id": "unknown-001", "ts_unix": 1715605256.1,  "seq": 7005, "spo2": 49.0, "pulse": 195, "status": "error" },
+  { "type": "plx", "device_id": "unknown-001", "ts_unix": 1715605256.2,  "seq": 7010, "spo2": 48.0, "pulse": 200, "status": "error" },
+  { "type": "plx", "device_id": "unknown-001", "ts_unix": 1715605256.3,  "seq": 7015, "spo2": 47.0, "pulse": 205, "status": "error" },
+  { "type": "plx", "device_id": "unknown-001", "ts_unix": 1715605256.4,  "seq": 7020, "spo2": 46.0, "pulse": 210, "status": "error" },
+
+  { "type": "plx", "device_id": "oxi-c2-bot", "ts_unix": 1715605257.0,  "seq": 8000, "spo2": 96.0, "pulse": 85,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-c2-bot", "ts_unix": 1715605257.01, "seq": 8001, "spo2": 96.0, "pulse": 85,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-c2-bot", "ts_unix": 1715605257.02, "seq": 8002, "spo2": 96.0, "pulse": 85,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-c2-bot", "ts_unix": 1715605257.03, "seq": 8003, "spo2": 96.0, "pulse": 85,  "status": "ok" },
+  { "type": "plx", "device_id": "oxi-c2-bot", "ts_unix": 1715605257.04, "seq": 8004, "spo2": 96.0, "pulse": 85,  "status": "ok" }
+]
