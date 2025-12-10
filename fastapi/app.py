@@ -1,72 +1,48 @@
-# app.py
-
-from __future__ import annotations
-from typing import Dict, Any
-from collections import defaultdict, deque
 import time
+from collections import defaultdict
+from typing import Dict, Any, Optional
 
 import uvicorn
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import socketio
 
+# Import model + preprocessing pipeline
 from inference_pipeline import (
     predict_from_raw_features,
     model,
     MODEL_FEATURE_NAMES,
 )
 
+# --------------------------------------
+# FastAPI app setup
+# --------------------------------------
+app = FastAPI(title="TwinGuard Attack Detection API")
 
-# Create Socket.IO server
-sio = socketio.AsyncServer(
-    async_mode='asgi',
-    cors_allowed_origins='*',  # Configure this for production
-    logger=True,
-    engineio_logger=False
-)
-
-# Create FastAPI app
-app = FastAPI(title="TwinGuard IIoT Attack Detection API")
-
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure for production
+    allow_origins=["*"],  # tighten in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Wrap FastAPI app with Socket.IO
-socket_app = socketio.ASGIApp(sio, app)
-
-# Flow state for simple traffic features
-flow_state = defaultdict(
+# --------------------------------------
+# Flow state (HTTP fallback)
+# --------------------------------------
+# Only used when no network_metadata is provided.
+flow_state: Dict[str, Dict[str, Any]] = defaultdict(
     lambda: {
-        "start_time": time.time(),
-        "last_time": time.time(),
+        "start_time": None,
+        "last_time": None,
         "byte_count": 0,
         "pkt_count": 0,
-        "history": deque(maxlen=100),
     }
 )
 
-
-# Socket.IO event handlers
-@sio.event
-async def connect(sid, environ):
-    """Handle client connection"""
-    print(f"[SocketIO] Client connected: {sid}")
-    await sio.emit('connection_status', {'status': 'connected', 'message': 'Successfully connected to server'}, room=sid)
-
-
-@sio.event
-async def disconnect(sid):
-    """Handle client disconnection"""
-    print(f"[SocketIO] Client disconnected: {sid}")
-
-
+# --------------------------------------
+# Pydantic schemas
+# --------------------------------------
 class OximeterPayload(BaseModel):
     type: str
     device_id: str
@@ -75,94 +51,125 @@ class OximeterPayload(BaseModel):
     spo2: float
     pulse: int
     status: str
-    # Optional network metadata from MQTT client
-    network_metadata: dict | None = None  # Can include: src_ip, src_port, pkt_size, mqtt_topic, etc.
+    # optional network info coming from mqttclient.py
+    network_metadata: Optional[Dict[str, Any]] = None
 
 
+# --------------------------------------
+# Feature extraction
+# --------------------------------------
 def get_network_features(request: Request, payload: OximeterPayload) -> Dict[str, Any]:
     """
-    Build a single 'flow snapshot' feature vector from the HTTP request or provided network metadata.
-    If network_metadata is provided in payload, use that; otherwise extract from HTTP request.
+    Build a one-row feature dict consistent with your training dataset.
+    Prefers network_metadata from mqttclient.py if available; otherwise
+    falls back to simple HTTP-derived stats.
     """
-    # Check if network metadata is provided from MQTT client
+
+    # Case 1: use network_metadata from MQTT client (recommended path)
     if payload.network_metadata:
-        print("[App] Using network metadata from MQTT client")
-        metadata = payload.network_metadata
-        src_ip = metadata.get("src_ip", "0.0.0.0")
-        dst_ip = metadata.get("dst_ip", "127.0.0.1")
-        sport = metadata.get("src_port", 0)
-        dport = metadata.get("dst_port", 8000)
-        pkt_size = metadata.get("pkt_size", 300)
-        
-        # Use MQTT-provided flow statistics (more accurate for attack detection)
-        flow_pkt_count = metadata.get("flow_pkt_count", 1)
-        flow_byte_count = metadata.get("flow_byte_count", pkt_size)
-        flow_duration = metadata.get("flow_duration", 0.001)
-        
-        # Use the current rate from MQTT client (captures burst behavior)
-        current_rate = metadata.get("current_rate", 1.0)
-        
-        # Use MQTT topic info if available for more context
-        mqtt_topic = metadata.get("mqtt_topic", "")
-        print(f"[App] MQTT Topic: {mqtt_topic}")
-        print(f"[App] MQTT Rate: {current_rate:.1f} pkt/s (flow: {flow_pkt_count} pkts in {flow_duration:.2f}s)")
-        
-        # Use provided values directly (don't recalculate)
-        raw_features = {
-            "SrcAddr": src_ip,
-            "DstAddr": dst_ip,
-            "Sport": str(sport),
-            "Dport": str(dport),
-            "TotPkts": flow_pkt_count,
-            "TotBytes": flow_byte_count,
-            "Dur": max(flow_duration, 0.001),
-            "Rate": max(current_rate, 0.1),  # Use current rate from MQTT (captures bursts!)
-            "SrcBytes": flow_byte_count,
-            "DstBytes": 0,
-        }
-    else:
-        print("[App] Using network metadata from HTTP request")
-        src_ip = request.client.host or "0.0.0.0"
-        dst_ip = "127.0.0.1"
-        sport = request.client.port
-        dport = 8000
-        pkt_size = 300
+        meta = payload.network_metadata
+        print("[App] Using network_metadata from MQTT client")
 
-        flow_key = (src_ip, payload.device_id)
-        current_time = time.time()
+        src_ip = str(meta.get("src_ip", "0.0.0.0"))
+        dst_ip = str(meta.get("dst_ip", "127.0.0.1"))
+        sport = int(meta.get("src_port", 1883))
+        dport = int(meta.get("dst_port", 8000))
 
-        stats = flow_state[flow_key]
-
-        # update flow stats
-        stats["last_time"] = current_time
-        stats["byte_count"] += pkt_size
-        stats["pkt_count"] += 1
-
-        dur = max(stats["last_time"] - stats["start_time"], 1e-5)
-        rate = stats["pkt_count"] / dur
-
-        # (Optional) clamp localhost to more 'normal' values for demo
-        if src_ip.startswith("127."):
-            dur = max(dur, 1.0)
-            rate = min(rate, 50.0)
+        # Flow-level stats computed in mqttclient.py
+        flow_pkts = float(meta.get("flow_pkt_count", 1.0))
+        flow_bytes = float(meta.get("flow_byte_count", meta.get("pkt_size", 300)))
+        flow_dur = float(meta.get("flow_duration", 1e-5))
+        if flow_dur <= 0:
+            flow_dur = 1e-5
+        rate = flow_pkts / flow_dur
 
         raw_features = {
             "SrcAddr": src_ip,
             "DstAddr": dst_ip,
             "Sport": str(sport),
             "Dport": str(dport),
-            "TotPkts": stats["pkt_count"],
-            "TotBytes": stats["byte_count"],
-            "Dur": dur,
+            "TotPkts": flow_pkts,
+            "TotBytes": flow_bytes,
+            "Dur": flow_dur,
             "Rate": rate,
-            "SrcBytes": stats["byte_count"],
-            "DstBytes": 0,
+            "SrcBytes": flow_bytes,
+            "DstBytes": 0.0,
         }
+        print("[App] raw features (from MQTT):", raw_features)
+        return raw_features
 
-    print(f"[App] Extracted raw features: {raw_features}")
+    # Case 2: fallback – derive approximate flow stats from HTTP traffic
+    print("[App] Using HTTP-derived network features (no network_metadata)")
+    src_ip = request.client.host or "0.0.0.0"
+    dst_ip = "127.0.0.1"
+    sport = request.client.port
+    dport = 8000
+
+    key = (src_ip, payload.device_id)
+    now = time.time()
+
+    state = flow_state[key]
+    if state["start_time"] is None:
+        state["start_time"] = now
+        state["last_time"] = now
+        state["byte_count"] = 0
+        state["pkt_count"] = 0
+
+    # rough estimate of HTTP+JSON size
+    approx_size = 300
+    state["pkt_count"] += 1
+    state["byte_count"] += approx_size
+    state["last_time"] = now
+
+    dur = max(state["last_time"] - state["start_time"], 1e-5)
+    rate = state["pkt_count"] / dur
+
+    raw_features = {
+        "SrcAddr": src_ip,
+        "DstAddr": dst_ip,
+        "Sport": str(sport),
+        "Dport": str(dport),
+        "TotPkts": float(state["pkt_count"]),
+        "TotBytes": float(state["byte_count"]),
+        "Dur": float(dur),
+        "Rate": float(rate),
+        "SrcBytes": float(state["byte_count"]),
+        "DstBytes": 0.0,
+    }
+    print("[App] raw features (from HTTP):", raw_features)
     return raw_features
 
 
+# --------------------------------------
+# Vitals anomaly rules (simple, optional)
+# --------------------------------------
+def vitals_anomaly_score(payload: OximeterPayload) -> Dict[str, Any]:
+    reasons = []
+    level = "none"
+
+    if payload.spo2 < 90:
+        reasons.append(f"Low SpO2 ({payload.spo2})")
+    if payload.pulse > 130:
+        reasons.append(f"Tachycardia ({payload.pulse} bpm)")
+    if payload.status != "ok":
+        reasons.append(f"Device status={payload.status}")
+
+    if reasons:
+        if payload.spo2 < 85 or payload.pulse > 150 or payload.status == "error":
+            level = "high"
+        else:
+            level = "medium"
+
+    return {
+        "is_anomalous": bool(reasons),
+        "level": level,
+        "reasons": reasons,
+    }
+
+
+# --------------------------------------
+# API endpoints
+# --------------------------------------
 @app.get("/")
 def root():
     return {
@@ -183,74 +190,57 @@ def health():
 async def analyze_vitals(request: Request, payload: OximeterPayload):
     """
     Main inference endpoint:
-      - receives vitals JSON from Node-RED / Postman
-      - derives network-like features
-      - passes them to the ML pipeline
-      - returns ATTACK / NORMAL + confidence
+      - builds network flow features
+      - runs them through the Bot-IoT preprocessor + XGB model
+      - optionally combines with vitals anomaly rules
     """
     if model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
     try:
-        # 1) Build raw feature dict from request + payload
         raw_feats = get_network_features(request, payload)
+        y_pred, prob_attack, X_processed = predict_from_raw_features(raw_feats)
 
-        # 2) Run through ML pipeline
-        y_pred, prob_attack, processed_df = predict_from_raw_features(raw_feats)
-        print("[App] preprocessed, model output:",
-              f"pred={y_pred}, prob_attack={prob_attack:.4f}")
+        model_attack = (y_pred == 1)
+        vitals_info = vitals_anomaly_score(payload)
+        vitals_attack = vitals_info["is_anomalous"] and vitals_info["level"] == "high"
 
-        # 3) Decide label (you can change threshold from 0.5 if you want)
-        is_attack = (y_pred == 1)
+        is_attack = model_attack or vitals_attack
         label = "ATTACK" if is_attack else "NORMAL"
 
-        # 4) Build response
         response = {
             "device_id": payload.device_id,
             "seq": payload.seq,
             "prediction": label,
-            "confidence": prob_attack,  # probability of ATTACK
+            "confidence_model_attack": round(float(prob_attack), 4),
+            "model_raw_pred_class": int(y_pred),
+            "vitals_anomaly": vitals_info,
+            "flow_features_used": {
+                "TotPkts": raw_feats.get("TotPkts"),
+                "TotBytes": raw_feats.get("TotBytes"),
+                "Dur": raw_feats.get("Dur"),
+                "Rate": raw_feats.get("Rate"),
+            },
             "spo2": payload.spo2,
             "pulse": payload.pulse,
             "status": payload.status,
-            "flow_stats": {
-                "rate": f"{raw_feats['Rate']:.2f} pkts/sec",
-                "duration": f"{raw_feats['Dur']:.2f} sec",
-                "tot_pkts": raw_feats["TotPkts"],
-                "tot_bytes": raw_feats["TotBytes"],
-            },
-            "timestamp": payload.ts_unix,
+            "ts_unix": payload.ts_unix,
             "server_timestamp": time.time(),
         }
 
-        if is_attack:
-            print(f"[App] !!! ATTACK DETECTED !!! device={payload.device_id} "
-                  f"prob={prob_attack:.4f}")
-
-        # Emit real-time event via Socket.IO before returning
-        vitals_event = {
-            "device_id": payload.device_id,
-            "spo2": payload.spo2,
-            "pulse": payload.pulse,
-            "prediction": label,
-            "confidence": prob_attack,
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "ts_unix": payload.ts_unix,
-        }
-        
-        await sio.emit('vitals_update', vitals_event)
-        print(f"[SocketIO] Emitted vitals_update: {vitals_event}")
+        print(
+            f"[App] model_pred={y_pred}, prob_attack={prob_attack:.4f}, "
+            f"vitals_level={vitals_info['level']}, final_label={label}"
+        )
 
         return response
 
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[App] Inference error: {e}")
+        print(f"[App] Inference Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
-    # Run locally with:  uvicorn app:socket_app --host 0.0.0.0 --port 8000 --reload
-    # Note: Use socket_app instead of app to enable Socket.IO support
-    uvicorn.run(socket_app, host="0.0.0.0", port=8000)
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
