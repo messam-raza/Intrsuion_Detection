@@ -6,6 +6,7 @@ import uvicorn
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import socketio
 
 # Import model + preprocessing pipeline
 from inference_pipeline import (
@@ -13,7 +14,12 @@ from inference_pipeline import (
     model,
     MODEL_FEATURE_NAMES,
 )
-
+sio = socketio.AsyncServer(
+    async_mode='asgi',
+    cors_allowed_origins='*',  # Configure this for production
+    logger=True,
+    engineio_logger=False
+)
 # --------------------------------------
 # FastAPI app setup
 # --------------------------------------
@@ -26,6 +32,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# Wrap FastAPI app with Socket.IO
+socket_app = socketio.ASGIApp(sio, app)
 
 # --------------------------------------
 # Flow state (HTTP fallback)
@@ -39,6 +47,18 @@ flow_state: Dict[str, Dict[str, Any]] = defaultdict(
         "pkt_count": 0,
     }
 )
+# Socket.IO event handlers
+@sio.event
+async def connect(sid, environ):
+    """Handle client connection"""
+    print(f"[SocketIO] Client connected: {sid}")
+    await sio.emit('connection_status', {'status': 'connected', 'message': 'Successfully connected to server'}, room=sid)
+
+
+@sio.event
+async def disconnect(sid):
+    """Handle client disconnection"""
+    print(f"[SocketIO] Client disconnected: {sid}")
 
 # --------------------------------------
 # Pydantic schemas
@@ -250,7 +270,18 @@ async def analyze_vitals(request: Request, payload: OximeterPayload):
             f"vitals_level={vitals_info['level']}, final_label={label}, "
             f"confidence_final={confidence_final:.4f}"
         )
+        vitals_event = {
+            "device_id": payload.device_id,
+            "spo2": payload.spo2,
+            "pulse": payload.pulse,
+            "prediction": label,
+            "confidence": prob_attack,
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "ts_unix": payload.ts_unix,
+        }
 
+        await sio.emit('vitals_update', vitals_event)
+        print(f"[SocketIO] Emitted vitals_update: {vitals_event}")
         return response
 
     except HTTPException:
@@ -261,4 +292,4 @@ async def analyze_vitals(request: Request, payload: OximeterPayload):
 
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(socket_app, host="0.0.0.0", port=8000)
