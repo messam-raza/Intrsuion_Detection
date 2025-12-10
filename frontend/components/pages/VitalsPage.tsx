@@ -11,15 +11,19 @@ interface EventRecord {
   confidence?: number
   timestamp?: string
   ts_unix?: number
+  flow_stats?: {
+    rate?: string
+    duration?: string
+  }
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL as string
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL as string
 
 export default function VitalsPage() {
   const [stats, setStats] = useState({ normal: 0, attack: 0 })
   const [events, setEvents] = useState<EventRecord[]>([])
   const [connected, setConnected] = useState(false)
+
   const [currentVitals, setCurrentVitals] = useState({
     spo2: 0,
     pulse: 0,
@@ -27,42 +31,7 @@ export default function VitalsPage() {
     confidence: 0,
   })
 
-  // 👉 Dummy live generator (for demo)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date()
-      const spo2 = 92 + Math.floor(Math.random() * 8)
-      const pulse = 70 + Math.floor(Math.random() * 50)
-      const isAttack = Math.random() < 0.15
-
-      const record: EventRecord = {
-        device_id: "demo-01",
-        spo2,
-        pulse,
-        prediction: isAttack ? "ATTACK" : "NORMAL",
-        confidence: Math.random(),
-        timestamp: now.toISOString(),
-      }
-
-      setCurrentVitals({
-        spo2,
-        pulse,
-        status: isAttack ? "ATTACK" : "NORMAL",
-        confidence: Math.random(),
-      })
-
-      setEvents((prev) => [record, ...prev].slice(0, 200))
-
-      setStats((prev) => ({
-        normal: prev.normal + (isAttack ? 0 : 1),
-        attack: prev.attack + (isAttack ? 1 : 0),
-      }))
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [])
-
-  // 👉 WebSocket for live updates
+  // 👉 LIVE WEBSOCKET LISTENER
   useEffect(() => {
     const ws = new WebSocket(WS_URL)
 
@@ -73,6 +42,8 @@ export default function VitalsPage() {
     ws.onmessage = (event) => {
       try {
         const record: EventRecord = JSON.parse(event.data)
+
+        // Update vitals
         setCurrentVitals({
           spo2: record.spo2 || 0,
           pulse: record.pulse || 0,
@@ -80,14 +51,18 @@ export default function VitalsPage() {
           confidence: record.confidence || 0,
         })
 
+        // Push to events list
         setEvents((prev) => [record, ...prev].slice(0, 200))
 
+        // Update stats
         const pred = (record.prediction || "").toUpperCase()
         setStats((prev) => ({
           normal: prev.normal + (pred === "NORMAL" ? 1 : 0),
           attack: prev.attack + (pred !== "NORMAL" ? 1 : 0),
         }))
-      } catch {}
+      } catch (err) {
+        console.error("WS message error:", err)
+      }
     }
 
     return () => ws.close()
@@ -98,8 +73,12 @@ export default function VitalsPage() {
   const attackRate = total ? ((stats.attack / total) * 100).toFixed(1) : "0"
   const isAlert = currentVitals.status !== "NORMAL"
 
+  // Latest event object
+  const latest = events[0]
+
   return (
     <div>
+      {/* HEADER */}
       <div style={{ marginBottom: "3rem" }}>
         <h1 className="card-title" style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
           Vitals Overview
@@ -109,7 +88,7 @@ export default function VitalsPage() {
         </p>
       </div>
 
-      {/* STATS GRID */}
+      {/* STAT CARDS */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-label">Total Events</div>
@@ -127,9 +106,7 @@ export default function VitalsPage() {
           <div className="stat-label">Attack Events</div>
           <div
             className="stat-value"
-            style={{
-              color: isAlert ? "#ef4444" : "#34d399",
-            }}
+            style={{ color: isAlert ? "#ef4444" : "#34d399" }}
           >
             {stats.attack}
           </div>
@@ -139,7 +116,7 @@ export default function VitalsPage() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-label">Status</div>
+          <div className="stat-label">Connection</div>
           <div className="stat-value" style={{ fontSize: "1.5rem" }}>
             {connected ? "🟢" : "🔴"}
           </div>
@@ -147,50 +124,43 @@ export default function VitalsPage() {
         </div>
       </div>
 
-      {/* VITALS CARDS */}
+      {/* VITAL CARDS */}
       <div className="vitals-grid">
-        <div className={`vital-card ${currentVitals.status === "NORMAL" ? "" : "alert"}`}>
+        <div className={`vital-card ${isAlert ? "alert" : ""}`}>
           <div className="vital-label">Oxygen Saturation</div>
           <div className="vital-value">{currentVitals.spo2}%</div>
           <div className="vital-unit">SpO₂ Level</div>
-          <div className="vital-status">
-            <div className={`status-indicator ${currentVitals.status === "NORMAL" ? "" : "alert"}`}></div>
-            <span>{currentVitals.status === "NORMAL" ? "Normal" : "Alert"}</span>
-          </div>
         </div>
 
-        <div className={`vital-card ${currentVitals.status === "NORMAL" ? "" : "alert"}`}>
+        <div className={`vital-card ${isAlert ? "alert" : ""}`}>
           <div className="vital-label">Heart Rate</div>
           <div className="vital-value">
             {currentVitals.pulse} <span style={{ fontSize: "1.2rem" }}>bpm</span>
           </div>
-          <div className="vital-unit">Beats Per Minute</div>
-          <div className="vital-status">
-            <div className={`status-indicator ${currentVitals.status === "NORMAL" ? "" : "alert"}`}></div>
-            <span>{currentVitals.status === "NORMAL" ? "Normal Range" : "Abnormal"}</span>
-          </div>
         </div>
 
-        <div className={`vital-card ${currentVitals.status === "NORMAL" ? "" : "alert"}`}>
-          <div className="vital-label">Detection Confidence</div>
+        <div className={`vital-card ${isAlert ? "alert" : ""}`}>
+          <div className="vital-label">Confidence</div>
           <div className="vital-value">{(currentVitals.confidence * 100).toFixed(1)}%</div>
-          <div className="vital-unit">Classification Confidence</div>
-          <div className="vital-status">
-            <div className={`status-indicator ${currentVitals.confidence > 0.7 ? "" : "alert"}`}></div>
-            <span>{currentVitals.confidence > 0.7 ? "High Confidence" : "Low Confidence"}</span>
-          </div>
         </div>
 
-        <div className={`vital-card ${currentVitals.status === "NORMAL" ? "" : "alert"}`}>
+        <div className={`vital-card ${isAlert ? "alert" : ""}`}>
           <div className="vital-label">Classification</div>
           <div className="vital-value" style={{ fontSize: "1.8rem" }}>
             {currentVitals.status}
           </div>
-          <div className="vital-unit">Current Status</div>
-          <div className="vital-status">
-            <div className={`status-indicator ${currentVitals.status === "NORMAL" ? "" : "alert"}`}></div>
-            <span>{currentVitals.status === "NORMAL" ? "Secure" : "Threat Detected"}</span>
-          </div>
+        </div>
+      </div>
+
+      {/* NETWORK STATS */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-label">Packets/sec</div>
+          <div className="stat-value">{latest?.flow_stats?.rate || "—"}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Duration</div>
+          <div className="stat-value">{latest?.flow_stats?.duration || "—"}</div>
         </div>
       </div>
 

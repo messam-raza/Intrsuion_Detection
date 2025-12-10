@@ -6,8 +6,9 @@ from collections import defaultdict, deque
 import time
 
 import uvicorn
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
+from typing import List
 
 from inference_pipeline import (
     predict_from_raw_features,
@@ -147,6 +148,8 @@ async def analyze_vitals(request: Request, payload: OximeterPayload):
             print(f"[App] !!! ATTACK DETECTED !!! device={payload.device_id} "
                   f"prob={prob_attack:.4f}")
 
+        response["timestamp"] = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
+        await manager.broadcast(response)
         return response
 
     except HTTPException:
@@ -155,6 +158,39 @@ async def analyze_vitals(request: Request, payload: OximeterPayload):
         print(f"[App] Inference error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# -------- WEBSOCKET MANAGER ----------
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: dict):
+        dead_clients = []
+        for conn in self.active_connections:
+            try:
+                await conn.send_json(message)
+            except WebSocketDisconnect:
+                dead_clients.append(conn)
+        for c in dead_clients:
+            self.disconnect(c)
+
+manager = ConnectionManager()
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            await websocket.receive_text()  # optional ping/pong
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
 
 if __name__ == "__main__":
     # Run locally with:  uvicorn app:app --host 0.0.0.0 --port 8000 --reload
