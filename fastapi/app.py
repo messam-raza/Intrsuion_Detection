@@ -6,9 +6,10 @@ from collections import defaultdict, deque
 import time
 
 import uvicorn
-from fastapi import FastAPI, Request, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List
+import socketio
 
 from inference_pipeline import (
     predict_from_raw_features,
@@ -17,7 +18,28 @@ from inference_pipeline import (
 )
 
 
+# Create Socket.IO server
+sio = socketio.AsyncServer(
+    async_mode='asgi',
+    cors_allowed_origins='*',  # Configure this for production
+    logger=True,
+    engineio_logger=False
+)
+
+# Create FastAPI app
 app = FastAPI(title="TwinGuard IIoT Attack Detection API")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Wrap FastAPI app with Socket.IO
+socket_app = socketio.ASGIApp(sio, app)
 
 # Flow state for simple traffic features
 flow_state = defaultdict(
@@ -29,6 +51,20 @@ flow_state = defaultdict(
         "history": deque(maxlen=100),
     }
 )
+
+
+# Socket.IO event handlers
+@sio.event
+async def connect(sid, environ):
+    """Handle client connection"""
+    print(f"[SocketIO] Client connected: {sid}")
+    await sio.emit('connection_status', {'status': 'connected', 'message': 'Successfully connected to server'}, room=sid)
+
+
+@sio.event
+async def disconnect(sid):
+    """Handle client disconnection"""
+    print(f"[SocketIO] Client disconnected: {sid}")
 
 
 class OximeterPayload(BaseModel):
@@ -135,12 +171,16 @@ async def analyze_vitals(request: Request, payload: OximeterPayload):
             "seq": payload.seq,
             "prediction": label,
             "confidence": prob_attack,  # probability of ATTACK
+            "spo2": payload.spo2,
+            "pulse": payload.pulse,
+            "status": payload.status,
             "flow_stats": {
                 "rate": f"{raw_feats['Rate']:.2f} pkts/sec",
                 "duration": f"{raw_feats['Dur']:.2f} sec",
                 "tot_pkts": raw_feats["TotPkts"],
                 "tot_bytes": raw_feats["TotBytes"],
             },
+            "timestamp": payload.ts_unix,
             "server_timestamp": time.time(),
         }
 
@@ -148,8 +188,20 @@ async def analyze_vitals(request: Request, payload: OximeterPayload):
             print(f"[App] !!! ATTACK DETECTED !!! device={payload.device_id} "
                   f"prob={prob_attack:.4f}")
 
-        response["timestamp"] = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime())
-        await manager.broadcast(response)
+        # Emit real-time event via Socket.IO before returning
+        vitals_event = {
+            "device_id": payload.device_id,
+            "spo2": payload.spo2,
+            "pulse": payload.pulse,
+            "prediction": label,
+            "confidence": prob_attack,
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "ts_unix": payload.ts_unix,
+        }
+        
+        await sio.emit('vitals_update', vitals_event)
+        print(f"[SocketIO] Emitted vitals_update: {vitals_event}")
+
         return response
 
     except HTTPException:
@@ -159,39 +211,7 @@ async def analyze_vitals(request: Request, payload: OximeterPayload):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# -------- WEBSOCKET MANAGER ----------
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: List[WebSocket] = []
-
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
-
-    def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
-
-    async def broadcast(self, message: dict):
-        dead_clients = []
-        for conn in self.active_connections:
-            try:
-                await conn.send_json(message)
-            except WebSocketDisconnect:
-                dead_clients.append(conn)
-        for c in dead_clients:
-            self.disconnect(c)
-
-manager = ConnectionManager()
-
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
-    try:
-        while True:
-            await websocket.receive_text()  # optional ping/pong
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
-
 if __name__ == "__main__":
-    # Run locally with:  uvicorn app:app --host 0.0.0.0 --port 8000 --reload
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Run locally with:  uvicorn app:socket_app --host 0.0.0.0 --port 8000 --reload
+    # Note: Use socket_app instead of app to enable Socket.IO support
+    uvicorn.run(socket_app, host="0.0.0.0", port=8000)
