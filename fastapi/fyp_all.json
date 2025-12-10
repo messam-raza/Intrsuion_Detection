@@ -1,0 +1,902 @@
+[
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-01",
+    "ts_unix": 1715605200.0,
+    "seq": 1,
+    "spo2": 96.9,
+    "pulse": 68,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-02",
+    "ts_unix": 1715605201.0,
+    "seq": 2,
+    "spo2": 97.3,
+    "pulse": 69,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-03",
+    "ts_unix": 1715605202.0,
+    "seq": 3,
+    "spo2": 97.7,
+    "pulse": 70,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-04",
+    "ts_unix": 1715605203.0,
+    "seq": 4,
+    "spo2": 98.1,
+    "pulse": 71,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-05",
+    "ts_unix": 1715605204.0,
+    "seq": 5,
+    "spo2": 96.9,
+    "pulse": 72,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-01",
+    "ts_unix": 1715605205.0,
+    "seq": 6,
+    "spo2": 97.3,
+    "pulse": 73,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-02",
+    "ts_unix": 1715605206.0,
+    "seq": 7,
+    "spo2": 97.7,
+    "pulse": 68,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-03",
+    "ts_unix": 1715605207.0,
+    "seq": 8,
+    "spo2": 98.1,
+    "pulse": 69,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-04",
+    "ts_unix": 1715605208.0,
+    "seq": 9,
+    "spo2": 96.9,
+    "pulse": 70,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-05",
+    "ts_unix": 1715605209.0,
+    "seq": 10,
+    "spo2": 97.3,
+    "pulse": 71,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-01",
+    "ts_unix": 1715605210.0,
+    "seq": 11,
+    "spo2": 97.7,
+    "pulse": 72,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-02",
+    "ts_unix": 1715605211.0,
+    "seq": 12,
+    "spo2": 98.1,
+    "pulse": 73,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-03",
+    "ts_unix": 1715605212.0,
+    "seq": 13,
+    "spo2": 96.9,
+    "pulse": 68,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-04",
+    "ts_unix": 1715605213.0,
+    "seq": 14,
+    "spo2": 97.3,
+    "pulse": 69,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-05",
+    "ts_unix": 1715605214.0,
+    "seq": 15,
+    "spo2": 97.7,
+    "pulse": 70,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-01",
+    "ts_unix": 1715605215.0,
+    "seq": 16,
+    "spo2": 98.1,
+    "pulse": 71,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-02",
+    "ts_unix": 1715605216.0,
+    "seq": 17,
+    "spo2": 96.9,
+    "pulse": 72,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-03",
+    "ts_unix": 1715605217.0,
+    "seq": 18,
+    "spo2": 97.3,
+    "pulse": 73,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-04",
+    "ts_unix": 1715605218.0,
+    "seq": 19,
+    "spo2": 97.7,
+    "pulse": 68,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-05",
+    "ts_unix": 1715605219.0,
+    "seq": 20,
+    "spo2": 98.1,
+    "pulse": 69,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-01",
+    "ts_unix": 1715605220.0,
+    "seq": 21,
+    "spo2": 96.9,
+    "pulse": 70,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-02",
+    "ts_unix": 1715605221.0,
+    "seq": 22,
+    "spo2": 97.3,
+    "pulse": 71,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-03",
+    "ts_unix": 1715605222.0,
+    "seq": 23,
+    "spo2": 97.7,
+    "pulse": 72,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-04",
+    "ts_unix": 1715605223.0,
+    "seq": 24,
+    "spo2": 98.1,
+    "pulse": 73,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-05",
+    "ts_unix": 1715605224.0,
+    "seq": 25,
+    "spo2": 96.9,
+    "pulse": 68,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-01",
+    "ts_unix": 1715605225.0,
+    "seq": 26,
+    "spo2": 97.3,
+    "pulse": 69,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-02",
+    "ts_unix": 1715605226.0,
+    "seq": 27,
+    "spo2": 97.7,
+    "pulse": 70,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-03",
+    "ts_unix": 1715605227.0,
+    "seq": 28,
+    "spo2": 98.1,
+    "pulse": 71,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-04",
+    "ts_unix": 1715605228.0,
+    "seq": 29,
+    "spo2": 96.9,
+    "pulse": 72,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-05",
+    "ts_unix": 1715605229.0,
+    "seq": 30,
+    "spo2": 97.3,
+    "pulse": 73,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-01",
+    "ts_unix": 1715605230.0,
+    "seq": 31,
+    "spo2": 97.7,
+    "pulse": 68,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-02",
+    "ts_unix": 1715605231.0,
+    "seq": 32,
+    "spo2": 98.1,
+    "pulse": 69,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-03",
+    "ts_unix": 1715605232.0,
+    "seq": 33,
+    "spo2": 96.9,
+    "pulse": 70,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-04",
+    "ts_unix": 1715605233.0,
+    "seq": 34,
+    "spo2": 97.3,
+    "pulse": 71,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-05",
+    "ts_unix": 1715605234.0,
+    "seq": 35,
+    "spo2": 97.7,
+    "pulse": 72,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-01",
+    "ts_unix": 1715605235.0,
+    "seq": 36,
+    "spo2": 98.1,
+    "pulse": 73,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-02",
+    "ts_unix": 1715605236.0,
+    "seq": 37,
+    "spo2": 96.9,
+    "pulse": 68,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-03",
+    "ts_unix": 1715605237.0,
+    "seq": 38,
+    "spo2": 97.3,
+    "pulse": 69,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-04",
+    "ts_unix": 1715605238.0,
+    "seq": 39,
+    "spo2": 97.7,
+    "pulse": 70,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-05",
+    "ts_unix": 1715605239.0,
+    "seq": 40,
+    "spo2": 98.1,
+    "pulse": 71,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-01",
+    "ts_unix": 1715605240.0,
+    "seq": 41,
+    "spo2": 96.9,
+    "pulse": 72,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-02",
+    "ts_unix": 1715605241.0,
+    "seq": 42,
+    "spo2": 97.3,
+    "pulse": 73,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-03",
+    "ts_unix": 1715605242.0,
+    "seq": 43,
+    "spo2": 97.7,
+    "pulse": 68,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-04",
+    "ts_unix": 1715605243.0,
+    "seq": 44,
+    "spo2": 98.1,
+    "pulse": 69,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-05",
+    "ts_unix": 1715605244.0,
+    "seq": 45,
+    "spo2": 96.9,
+    "pulse": 70,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-01",
+    "ts_unix": 1715605245.0,
+    "seq": 46,
+    "spo2": 97.3,
+    "pulse": 71,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-02",
+    "ts_unix": 1715605246.0,
+    "seq": 47,
+    "spo2": 97.7,
+    "pulse": 72,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-03",
+    "ts_unix": 1715605247.0,
+    "seq": 48,
+    "spo2": 98.1,
+    "pulse": 73,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-04",
+    "ts_unix": 1715605248.0,
+    "seq": 49,
+    "spo2": 96.9,
+    "pulse": 68,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-normal-05",
+    "ts_unix": 1715605249.0,
+    "seq": 50,
+    "spo2": 97.3,
+    "pulse": 69,
+    "status": "ok"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605300.0,
+    "seq": 1000,
+    "spo2": 85.0,
+    "pulse": 120,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605300.05,
+    "seq": 1005,
+    "spo2": 82.0,
+    "pulse": 130,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-03",
+    "ts_unix": 1715605300.1,
+    "seq": 1010,
+    "spo2": 79.0,
+    "pulse": 140,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605300.15,
+    "seq": 1015,
+    "spo2": 76.0,
+    "pulse": 150,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605300.2,
+    "seq": 1020,
+    "spo2": 73.0,
+    "pulse": 160,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-03",
+    "ts_unix": 1715605300.25,
+    "seq": 1025,
+    "spo2": 85.0,
+    "pulse": 170,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605300.3,
+    "seq": 1030,
+    "spo2": 82.0,
+    "pulse": 180,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605300.35,
+    "seq": 1035,
+    "spo2": 79.0,
+    "pulse": 120,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-03",
+    "ts_unix": 1715605300.4,
+    "seq": 1040,
+    "spo2": 76.0,
+    "pulse": 130,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605300.45,
+    "seq": 1045,
+    "spo2": 73.0,
+    "pulse": 140,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605300.5,
+    "seq": 1050,
+    "spo2": 85.0,
+    "pulse": 150,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-03",
+    "ts_unix": 1715605300.55,
+    "seq": 1055,
+    "spo2": 82.0,
+    "pulse": 160,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605300.6,
+    "seq": 1060,
+    "spo2": 79.0,
+    "pulse": 170,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605300.65,
+    "seq": 1065,
+    "spo2": 76.0,
+    "pulse": 180,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-03",
+    "ts_unix": 1715605300.7,
+    "seq": 1070,
+    "spo2": 73.0,
+    "pulse": 120,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605300.75,
+    "seq": 1075,
+    "spo2": 85.0,
+    "pulse": 130,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605300.8,
+    "seq": 1080,
+    "spo2": 82.0,
+    "pulse": 140,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-03",
+    "ts_unix": 1715605300.85,
+    "seq": 1085,
+    "spo2": 79.0,
+    "pulse": 150,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605300.9,
+    "seq": 1090,
+    "spo2": 76.0,
+    "pulse": 160,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605300.95,
+    "seq": 1095,
+    "spo2": 73.0,
+    "pulse": 170,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-03",
+    "ts_unix": 1715605301.0,
+    "seq": 1100,
+    "spo2": 85.0,
+    "pulse": 180,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605301.05,
+    "seq": 1105,
+    "spo2": 82.0,
+    "pulse": 120,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605301.1,
+    "seq": 1110,
+    "spo2": 79.0,
+    "pulse": 130,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-03",
+    "ts_unix": 1715605301.15,
+    "seq": 1115,
+    "spo2": 76.0,
+    "pulse": 140,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605301.2,
+    "seq": 1120,
+    "spo2": 73.0,
+    "pulse": 150,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605301.25,
+    "seq": 1125,
+    "spo2": 85.0,
+    "pulse": 160,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-03",
+    "ts_unix": 1715605301.3,
+    "seq": 1130,
+    "spo2": 82.0,
+    "pulse": 170,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605301.35,
+    "seq": 1135,
+    "spo2": 79.0,
+    "pulse": 180,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605301.4,
+    "seq": 1140,
+    "spo2": 76.0,
+    "pulse": 120,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-03",
+    "ts_unix": 1715605301.45,
+    "seq": 1145,
+    "spo2": 73.0,
+    "pulse": 130,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605301.5,
+    "seq": 1150,
+    "spo2": 85.0,
+    "pulse": 140,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605301.55,
+    "seq": 1155,
+    "spo2": 82.0,
+    "pulse": 150,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-03",
+    "ts_unix": 1715605301.6,
+    "seq": 1160,
+    "spo2": 79.0,
+    "pulse": 160,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605301.65,
+    "seq": 1165,
+    "spo2": 76.0,
+    "pulse": 170,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605301.7,
+    "seq": 1170,
+    "spo2": 73.0,
+    "pulse": 180,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-03",
+    "ts_unix": 1715605301.75,
+    "seq": 1175,
+    "spo2": 85.0,
+    "pulse": 120,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605301.8,
+    "seq": 1180,
+    "spo2": 82.0,
+    "pulse": 130,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605301.85,
+    "seq": 1185,
+    "spo2": 79.0,
+    "pulse": 140,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-03",
+    "ts_unix": 1715605301.9,
+    "seq": 1190,
+    "spo2": 76.0,
+    "pulse": 150,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605301.95,
+    "seq": 1195,
+    "spo2": 73.0,
+    "pulse": 160,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605302.0,
+    "seq": 1200,
+    "spo2": 85.0,
+    "pulse": 170,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-03",
+    "ts_unix": 1715605302.05,
+    "seq": 1205,
+    "spo2": 82.0,
+    "pulse": 180,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605302.1,
+    "seq": 1210,
+    "spo2": 79.0,
+    "pulse": 120,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605302.15,
+    "seq": 1215,
+    "spo2": 76.0,
+    "pulse": 130,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-03",
+    "ts_unix": 1715605302.2,
+    "seq": 1220,
+    "spo2": 73.0,
+    "pulse": 140,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605302.25,
+    "seq": 1225,
+    "spo2": 85.0,
+    "pulse": 150,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605302.3,
+    "seq": 1230,
+    "spo2": 82.0,
+    "pulse": 160,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-03",
+    "ts_unix": 1715605302.35,
+    "seq": 1235,
+    "spo2": 79.0,
+    "pulse": 170,
+    "status": "error"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-01",
+    "ts_unix": 1715605302.4,
+    "seq": 1240,
+    "spo2": 76.0,
+    "pulse": 180,
+    "status": "alert"
+  },
+  {
+    "type": "plx",
+    "device_id": "oxi-attack-02",
+    "ts_unix": 1715605302.45,
+    "seq": 1245,
+    "spo2": 73.0,
+    "pulse": 120,
+    "status": "error"
+  }
+]
