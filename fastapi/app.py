@@ -75,23 +75,39 @@ class OximeterPayload(BaseModel):
     spo2: float
     pulse: int
     status: str
+    # Optional network metadata from MQTT client
+    network_metadata: dict | None = None  # Can include: src_ip, src_port, pkt_size, mqtt_topic, etc.
 
 
 def get_network_features(request: Request, payload: OximeterPayload) -> Dict[str, Any]:
     """
-    Build a single 'flow snapshot' feature vector from the HTTP request.
-    This simulates what your gateway/DT would normally compute from mirrored traffic.
+    Build a single 'flow snapshot' feature vector from the HTTP request or provided network metadata.
+    If network_metadata is provided in payload, use that; otherwise extract from HTTP request.
     """
-    src_ip = request.client.host or "0.0.0.0"
-    dst_ip = "127.0.0.1"  # your API host (demo)
-    sport = request.client.port
-    dport = 8000
+    # Check if network metadata is provided from MQTT client
+    if payload.network_metadata:
+        print("[App] Using network metadata from MQTT client")
+        metadata = payload.network_metadata
+        src_ip = metadata.get("src_ip", "0.0.0.0")
+        dst_ip = metadata.get("dst_ip", "127.0.0.1")
+        sport = metadata.get("src_port", 0)
+        dport = metadata.get("dst_port", 8000)
+        pkt_size = metadata.get("pkt_size", 300)
+        
+        # Use MQTT topic info if available for more context
+        mqtt_topic = metadata.get("mqtt_topic", "")
+        print(f"[App] MQTT Topic: {mqtt_topic}")
+    else:
+        print("[App] Using network metadata from HTTP request")
+        src_ip = request.client.host or "0.0.0.0"
+        dst_ip = "127.0.0.1"
+        sport = request.client.port
+        dport = 8000
+        pkt_size = 300
 
     flow_key = (src_ip, payload.device_id)
     current_time = time.time()
 
-    # approximate packet size for this request
-    pkt_size = 300  # bytes
     stats = flow_state[flow_key]
 
     # update flow stats
@@ -103,7 +119,8 @@ def get_network_features(request: Request, payload: OximeterPayload) -> Dict[str
     rate = stats["pkt_count"] / dur
 
     # (Optional) clamp localhost to more 'normal' values for demo
-    if src_ip.startswith("127."):
+    # Only apply clamping if no network metadata was provided
+    if src_ip.startswith("127.") and not payload.network_metadata:
         dur = max(dur, 1.0)
         rate = min(rate, 50.0)
 
