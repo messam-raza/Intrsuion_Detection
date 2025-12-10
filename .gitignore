@@ -1,2 +1,4 @@
 datasets/
-venv/
+.venv/
+*.md
+fastapi/test_socketio_integration.py

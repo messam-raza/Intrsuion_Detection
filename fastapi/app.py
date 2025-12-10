@@ -1,9 +1,10 @@
 import time
 from collections import defaultdict
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 import uvicorn
 from fastapi import FastAPI, Request, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # Import model + preprocessing pipeline
@@ -13,22 +14,35 @@ from inference_pipeline import (
     MODEL_FEATURE_NAMES,
 )
 
+# --------------------------------------
+# FastAPI app setup
+# --------------------------------------
+app = FastAPI(title="TwinGuard Attack Detection API")
 
-# =========================
-# FastAPI setup
-# =========================
-
-app = FastAPI(
-    title="TwinGuard AI – Attack Detection API",
-    description="FastAPI service that scores oximeter flows for attacks.",
-    version="1.0.0",
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # tighten in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
+# --------------------------------------
+# Flow state (HTTP fallback)
+# --------------------------------------
+# Only used when no network_metadata is provided.
+flow_state: Dict[str, Dict[str, Any]] = defaultdict(
+    lambda: {
+        "start_time": None,
+        "last_time": None,
+        "byte_count": 0,
+        "pkt_count": 0,
+    }
+)
 
-# =========================
-# Pydantic model
-# =========================
-
+# --------------------------------------
+# Pydantic schemas
+# --------------------------------------
 class OximeterPayload(BaseModel):
     type: str
     device_id: str
@@ -37,78 +51,102 @@ class OximeterPayload(BaseModel):
     spo2: float
     pulse: int
     status: str
+    # optional network info coming from mqttclient.py
+    network_metadata: Optional[Dict[str, Any]] = None
 
 
-# =========================
-# Simple flow state
-# =========================
-# Keyed by device_id so bursts from same device accumulate
-
-flow_state = defaultdict(lambda: {
-    "start_time": None,
-    "last_time": None,
-    "byte_count": 0,
-    "pkt_count": 0,
-})
-
-
+# --------------------------------------
+# Feature extraction
+# --------------------------------------
 def get_network_features(request: Request, payload: OximeterPayload) -> Dict[str, Any]:
     """
-    Build a simple flow snapshot from this device's HTTP traffic.
-    These features are then mapped to the Bot-IoT model feature space.
+    Build a one-row feature dict consistent with your training dataset.
+    Prefers network_metadata from mqttclient.py if available; otherwise
+    falls back to simple HTTP-derived stats.
     """
+
+    # Case 1: use network_metadata from MQTT client (recommended path)
+    if payload.network_metadata:
+        meta = payload.network_metadata
+        print("[App] Using network_metadata from MQTT client")
+
+        src_ip = str(meta.get("src_ip", "0.0.0.0"))
+        dst_ip = str(meta.get("dst_ip", "127.0.0.1"))
+        sport = int(meta.get("src_port", 1883))
+        dport = int(meta.get("dst_port", 8000))
+
+        # Flow-level stats computed in mqttclient.py
+        flow_pkts = float(meta.get("flow_pkt_count", 1.0))
+        flow_bytes = float(meta.get("flow_byte_count", meta.get("pkt_size", 300)))
+        flow_dur = float(meta.get("flow_duration", 1e-5))
+        if flow_dur <= 0:
+            flow_dur = 1e-5
+        rate = flow_pkts / flow_dur
+
+        raw_features = {
+            "SrcAddr": src_ip,
+            "DstAddr": dst_ip,
+            "Sport": str(sport),
+            "Dport": str(dport),
+            "TotPkts": flow_pkts,
+            "TotBytes": flow_bytes,
+            "Dur": flow_dur,
+            "Rate": rate,
+            "SrcBytes": flow_bytes,
+            "DstBytes": 0.0,
+        }
+        print("[App] raw features (from MQTT):", raw_features)
+        return raw_features
+
+    # Case 2: fallback – derive approximate flow stats from HTTP traffic
+    print("[App] Using HTTP-derived network features (no network_metadata)")
     src_ip = request.client.host or "0.0.0.0"
-    dst_ip = "127.0.0.1"          # API host (demo)
+    dst_ip = "127.0.0.1"
     sport = request.client.port
-    dport = 8000                  # FastAPI port
+    dport = 8000
 
-    key = payload.device_id
-    stats = flow_state[key]
-
+    key = (src_ip, payload.device_id)
     now = time.time()
-    if stats["start_time"] is None:
-        stats["start_time"] = now
 
-    stats["last_time"] = now
-    stats["pkt_count"] += 1
+    state = flow_state[key]
+    if state["start_time"] is None:
+        state["start_time"] = now
+        state["last_time"] = now
+        state["byte_count"] = 0
+        state["pkt_count"] = 0
 
-    # rough estimate of payload size in bytes (JSON + HTTP overhead)
-    approx_pkt_size = 300
-    stats["byte_count"] += approx_pkt_size
+    # rough estimate of HTTP+JSON size
+    approx_size = 300
+    state["pkt_count"] += 1
+    state["byte_count"] += approx_size
+    state["last_time"] = now
 
-    dur = max(stats["last_time"] - stats["start_time"], 1e-5)
-    rate = stats["pkt_count"] / dur
+    dur = max(state["last_time"] - state["start_time"], 1e-5)
+    rate = state["pkt_count"] / dur
 
     raw_features = {
         "SrcAddr": src_ip,
         "DstAddr": dst_ip,
         "Sport": str(sport),
         "Dport": str(dport),
-        "TotPkts": stats["pkt_count"],
-        "TotBytes": stats["byte_count"],
-        "Dur": dur,
-        "Rate": rate,
-        "SrcBytes": stats["byte_count"],
-        "DstBytes": 0,
+        "TotPkts": float(state["pkt_count"]),
+        "TotBytes": float(state["byte_count"]),
+        "Dur": float(dur),
+        "Rate": float(rate),
+        "SrcBytes": float(state["byte_count"]),
+        "DstBytes": 0.0,
     }
-
-    print("[App] raw features:", raw_features)
+    print("[App] raw features (from HTTP):", raw_features)
     return raw_features
 
 
-# =========================
-# Vitals anomaly rules
-# =========================
-
+# --------------------------------------
+# Vitals anomaly rules (simple, optional)
+# --------------------------------------
 def vitals_anomaly_score(payload: OximeterPayload) -> Dict[str, Any]:
-    """
-    Simple rule-based anomaly detector on vital signs.
-    This is combined with the ML model's decision.
-    """
     reasons = []
     level = "none"
 
-    # basic thresholds (tune as you like)
     if payload.spo2 < 90:
         reasons.append(f"Low SpO2 ({payload.spo2})")
     if payload.pulse > 130:
@@ -117,7 +155,6 @@ def vitals_anomaly_score(payload: OximeterPayload) -> Dict[str, Any]:
         reasons.append(f"Device status={payload.status}")
 
     if reasons:
-        # severity tiers
         if payload.spo2 < 85 or payload.pulse > 150 or payload.status == "error":
             level = "high"
         else:
@@ -130,10 +167,9 @@ def vitals_anomaly_score(payload: OximeterPayload) -> Dict[str, Any]:
     }
 
 
-# =========================
+# --------------------------------------
 # API endpoints
-# =========================
-
+# --------------------------------------
 @app.get("/")
 def root():
     return {
@@ -153,67 +189,49 @@ def health():
 @app.post("/analyze_vitals")
 async def analyze_vitals(request: Request, payload: OximeterPayload):
     """
-    Main endpoint:
-      - receives vitals from Node-RED
-      - builds network-flow-like features
-      - runs ML pipeline
-      - applies vitals rules
-      - returns final ATTACK / NORMAL
+    Main inference endpoint:
+      - builds network flow features
+      - runs them through the Bot-IoT preprocessor + XGB model
+      - optionally combines with vitals anomaly rules
     """
     if model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
     try:
-        # 1) Derive network features from traffic pattern
         raw_feats = get_network_features(request, payload)
+        y_pred, prob_attack, X_processed = predict_from_raw_features(raw_feats)
 
-        # 2) Run through trained Bot-IoT pipeline
-        pred_class, prob_attack, processed_df = predict_from_raw_features(raw_feats)
-        print(
-            f"[App] model output: class={pred_class}, "
-            f"prob_attack={prob_attack:.4f}"
-        )
-
-        # 3) Vitals anomaly layer
+        model_attack = (y_pred == 1)
         vitals_info = vitals_anomaly_score(payload)
-        model_attack = (pred_class == 1)
         vitals_attack = vitals_info["is_anomalous"] and vitals_info["level"] == "high"
 
-        # 4) Final decision: HYBRID (ML OR vitals HIGH)
         is_attack = model_attack or vitals_attack
-        if is_attack:
-            label = "ATTACK"
-            confidence = prob_attack if prob_attack >= 0.5 else 0.9
-        else:
-            label = "NORMAL"
-            confidence = 1.0 - prob_attack if prob_attack <= 0.5 else 0.6
+        label = "ATTACK" if is_attack else "NORMAL"
 
         response = {
             "device_id": payload.device_id,
             "seq": payload.seq,
             "prediction": label,
-            "confidence": round(float(confidence), 4),
-            "model_output": {
-                "raw_pred_class": int(pred_class),
-                "prob_attack_class1": round(float(prob_attack), 4),
-            },
+            "confidence_model_attack": round(float(prob_attack), 4),
+            "model_raw_pred_class": int(y_pred),
             "vitals_anomaly": vitals_info,
-            "flow_stats": {
-                "TotPkts": raw_feats["TotPkts"],
-                "TotBytes": raw_feats["TotBytes"],
-                "duration_sec": round(float(raw_feats["Dur"]), 4),
-                "rate_pkts_per_sec": round(float(raw_feats["Rate"]), 4),
+            "flow_features_used": {
+                "TotPkts": raw_feats.get("TotPkts"),
+                "TotBytes": raw_feats.get("TotBytes"),
+                "Dur": raw_feats.get("Dur"),
+                "Rate": raw_feats.get("Rate"),
             },
+            "spo2": payload.spo2,
+            "pulse": payload.pulse,
+            "status": payload.status,
+            "ts_unix": payload.ts_unix,
             "server_timestamp": time.time(),
         }
 
-        if is_attack:
-            print(
-                f"[App] !!! ATTACK DETECTED !!! "
-                f"device={payload.device_id} | "
-                f"prob_model={prob_attack:.4f} | "
-                f"vitals_level={vitals_info['level']}"
-            )
+        print(
+            f"[App] model_pred={y_pred}, prob_attack={prob_attack:.4f}, "
+            f"vitals_level={vitals_info['level']}, final_label={label}"
+        )
 
         return response
 
@@ -225,5 +243,4 @@ async def analyze_vitals(request: Request, payload: OximeterPayload):
 
 
 if __name__ == "__main__":
-    # Example: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
