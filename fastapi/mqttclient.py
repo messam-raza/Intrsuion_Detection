@@ -56,15 +56,35 @@ def main():
                 "last_seen": current_time,
                 "pkt_count": 0,
                 "byte_count": 0,
+                "last_window_time": current_time,
+                "window_pkt_count": 0,
             }
         
         stats = device_stats[device_id]
+        
+        # Calculate time since last packet (for rate detection)
+        time_since_last = current_time - stats["last_seen"]
+        
         stats["last_seen"] = current_time
         stats["pkt_count"] += 1
         stats["byte_count"] += payload_size
         
+        # Track packets in 1-second window for rate calculation
+        if current_time - stats["last_window_time"] > 1.0:
+            stats["window_pkt_count"] = 1
+            stats["last_window_time"] = current_time
+        else:
+            stats["window_pkt_count"] += 1
+        
+        # Calculate current rate (packets/sec in current window)
+        window_duration = current_time - stats["last_window_time"]
+        current_rate = stats["window_pkt_count"] / max(window_duration, 0.001)
+        
         # Extract device IP from data if available, otherwise use default
         device_ip = args.device_ip  # Can be overridden per device
+        
+        flow_duration = current_time - stats["first_seen"]
+        avg_rate = stats["pkt_count"] / max(flow_duration, 0.001)
         
         network_metadata = {
             "src_ip": device_ip,  # IoT device IP
@@ -78,7 +98,10 @@ def main():
             # Flow statistics
             "flow_pkt_count": stats["pkt_count"],
             "flow_byte_count": stats["byte_count"],
-            "flow_duration": current_time - stats["first_seen"],
+            "flow_duration": flow_duration,
+            "time_since_last_pkt": time_since_last,
+            "current_rate": current_rate,  # Instantaneous rate
+            "avg_rate": avg_rate,  # Average rate over flow
             "timestamp": current_time,
         }
         
@@ -160,6 +183,9 @@ def main():
         print(f"      Flow stats: {network_metadata['flow_pkt_count']} pkts, "
               f"{network_metadata['flow_byte_count']} bytes, "
               f"{network_metadata['flow_duration']:.2f}s duration")
+        print(f"      Rates: Current={network_metadata['current_rate']:.1f} pkt/s, "
+              f"Avg={network_metadata['avg_rate']:.1f} pkt/s, "
+              f"Last interval={network_metadata['time_since_last_pkt']:.3f}s")
         
         # ---- Step 2: Call FastAPI inference with network metadata ----
         ai_response = call_fastapi_inference(data, network_metadata)
@@ -186,6 +212,7 @@ def main():
         out_topic = f"{unity_prefix}/{device_id}"
         # We forward the ORIGINAL data payload (not AI response),
         # so Unity still gets the normal vitals JSON it expects.
+        data["packet"] = "normal"
         cli.publish(out_topic, json.dumps(data), qos=args.qos, retain=False)
         print(f"[FWD] ✓ Forwarded NORMAL message → {out_topic}")
 

@@ -94,9 +94,32 @@ def get_network_features(request: Request, payload: OximeterPayload) -> Dict[str
         dport = metadata.get("dst_port", 8000)
         pkt_size = metadata.get("pkt_size", 300)
         
+        # Use MQTT-provided flow statistics (more accurate for attack detection)
+        flow_pkt_count = metadata.get("flow_pkt_count", 1)
+        flow_byte_count = metadata.get("flow_byte_count", pkt_size)
+        flow_duration = metadata.get("flow_duration", 0.001)
+        
+        # Use the current rate from MQTT client (captures burst behavior)
+        current_rate = metadata.get("current_rate", 1.0)
+        
         # Use MQTT topic info if available for more context
         mqtt_topic = metadata.get("mqtt_topic", "")
         print(f"[App] MQTT Topic: {mqtt_topic}")
+        print(f"[App] MQTT Rate: {current_rate:.1f} pkt/s (flow: {flow_pkt_count} pkts in {flow_duration:.2f}s)")
+        
+        # Use provided values directly (don't recalculate)
+        raw_features = {
+            "SrcAddr": src_ip,
+            "DstAddr": dst_ip,
+            "Sport": str(sport),
+            "Dport": str(dport),
+            "TotPkts": flow_pkt_count,
+            "TotBytes": flow_byte_count,
+            "Dur": max(flow_duration, 0.001),
+            "Rate": max(current_rate, 0.1),  # Use current rate from MQTT (captures bursts!)
+            "SrcBytes": flow_byte_count,
+            "DstBytes": 0,
+        }
     else:
         print("[App] Using network metadata from HTTP request")
         src_ip = request.client.host or "0.0.0.0"
@@ -105,37 +128,36 @@ def get_network_features(request: Request, payload: OximeterPayload) -> Dict[str
         dport = 8000
         pkt_size = 300
 
-    flow_key = (src_ip, payload.device_id)
-    current_time = time.time()
+        flow_key = (src_ip, payload.device_id)
+        current_time = time.time()
 
-    stats = flow_state[flow_key]
+        stats = flow_state[flow_key]
 
-    # update flow stats
-    stats["last_time"] = current_time
-    stats["byte_count"] += pkt_size
-    stats["pkt_count"] += 1
+        # update flow stats
+        stats["last_time"] = current_time
+        stats["byte_count"] += pkt_size
+        stats["pkt_count"] += 1
 
-    dur = max(stats["last_time"] - stats["start_time"], 1e-5)
-    rate = stats["pkt_count"] / dur
+        dur = max(stats["last_time"] - stats["start_time"], 1e-5)
+        rate = stats["pkt_count"] / dur
 
-    # (Optional) clamp localhost to more 'normal' values for demo
-    # Only apply clamping if no network metadata was provided
-    if src_ip.startswith("127.") and not payload.network_metadata:
-        dur = max(dur, 1.0)
-        rate = min(rate, 50.0)
+        # (Optional) clamp localhost to more 'normal' values for demo
+        if src_ip.startswith("127."):
+            dur = max(dur, 1.0)
+            rate = min(rate, 50.0)
 
-    raw_features = {
-        "SrcAddr": src_ip,
-        "DstAddr": dst_ip,
-        "Sport": str(sport),
-        "Dport": str(dport),
-        "TotPkts": stats["pkt_count"],
-        "TotBytes": stats["byte_count"],
-        "Dur": dur,
-        "Rate": rate,
-        "SrcBytes": stats["byte_count"],
-        "DstBytes": 0,
-    }
+        raw_features = {
+            "SrcAddr": src_ip,
+            "DstAddr": dst_ip,
+            "Sport": str(sport),
+            "Dport": str(dport),
+            "TotPkts": stats["pkt_count"],
+            "TotBytes": stats["byte_count"],
+            "Dur": dur,
+            "Rate": rate,
+            "SrcBytes": stats["byte_count"],
+            "DstBytes": 0,
+        }
 
     print(f"[App] Extracted raw features: {raw_features}")
     return raw_features
