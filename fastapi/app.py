@@ -205,15 +205,32 @@ async def analyze_vitals(request: Request, payload: OximeterPayload):
         vitals_info = vitals_anomaly_score(payload)
         vitals_attack = vitals_info["is_anomalous"] and vitals_info["level"] == "high"
 
+        # Final decision: model OR high-severity vitals anomaly
         is_attack = model_attack or vitals_attack
         label = "ATTACK" if is_attack else "NORMAL"
+
+        # Confidence for final label:
+        # - if model says attack → use model probability
+        # - if only vitals triggered → fixed high confidence
+        # - if final NORMAL → 1 - model attack prob
+        if model_attack:
+            confidence_final = prob_attack
+        elif vitals_attack and not model_attack:
+            confidence_final = 0.9
+        else:
+            confidence_final = 1.0 - prob_attack
 
         response = {
             "device_id": payload.device_id,
             "seq": payload.seq,
             "prediction": label,
+            # model-only probability of attack
             "confidence_model_attack": round(float(prob_attack), 4),
             "model_raw_pred_class": int(y_pred),
+            # final combined confidence (model + vitals)
+            "confidence_final": round(float(confidence_final), 4),
+            # backward-compatible alias (what mqttclient used to expect)
+            "confidence": round(float(confidence_final), 4),
             "vitals_anomaly": vitals_info,
             "flow_features_used": {
                 "TotPkts": raw_feats.get("TotPkts"),
@@ -230,7 +247,8 @@ async def analyze_vitals(request: Request, payload: OximeterPayload):
 
         print(
             f"[App] model_pred={y_pred}, prob_attack={prob_attack:.4f}, "
-            f"vitals_level={vitals_info['level']}, final_label={label}"
+            f"vitals_level={vitals_info['level']}, final_label={label}, "
+            f"confidence_final={confidence_final:.4f}"
         )
 
         return response
