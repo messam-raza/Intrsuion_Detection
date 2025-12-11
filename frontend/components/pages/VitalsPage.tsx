@@ -17,7 +17,7 @@ interface EventRecord {
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 const SOCKET_URL =
-  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:8000";
+  process.env.NEXT_PUBLIC_SOCKET_URL || "https://cf13cb41311e.ngrok-free.app";
 
 export default function VitalsPage() {
   const [stats, setStats] = useState({ normal: 0, attack: 0 });
