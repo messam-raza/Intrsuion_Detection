@@ -12,17 +12,67 @@ interface EventRecord {
 
 function formatTime(ts?: string | number) {
   try {
-    if (!ts) return "-"
-    if (typeof ts === "number") return new Date(ts * 1000).toLocaleTimeString()
-    return new Date(ts).toLocaleTimeString()
+    if (!ts) return "—"
+    const d = typeof ts === "number" ? new Date(ts * 1000) : new Date(ts)
+    return d.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    })
   } catch {
     return String(ts)
   }
 }
 
-export default function EventsTable({ events }: { events: EventRecord[] }) {
+function ConfidenceBar({ value }: { value: number }) {
+  const pct = Math.round(value * 100)
+  const color =
+    pct >= 80 ? "var(--success)" : pct >= 60 ? "var(--warning)" : "var(--danger)"
   return (
-    <table className="table">
+    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+      <div
+        style={{
+          width: 56,
+          height: 4,
+          background: "rgba(255,255,255,0.06)",
+          borderRadius: 99,
+          overflow: "hidden",
+          flexShrink: 0,
+        }}
+      >
+        <div
+          style={{
+            height: "100%",
+            width: `${pct}%`,
+            background: color,
+            borderRadius: 99,
+            transition: "width 0.4s ease",
+          }}
+        />
+      </div>
+      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+        {pct}%
+      </span>
+    </div>
+  )
+}
+
+export default function EventsTable({ events }: { events: EventRecord[] }) {
+  if (events.length === 0) {
+    return (
+      <div className="table-waiting">
+        <div className="table-waiting-icon">⟳</div>
+        <div className="table-waiting-text">Waiting for live data stream…</div>
+        <div style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+          Connect to the WebSocket server to begin receiving events
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <table className="table" aria-label="Live events stream">
       <thead>
         <tr>
           <th>Time</th>
@@ -33,34 +83,39 @@ export default function EventsTable({ events }: { events: EventRecord[] }) {
           <th>Confidence</th>
         </tr>
       </thead>
-
       <tbody>
-        {events.length === 0 && (
-          <tr>
-            <td colSpan={6} style={{ textAlign: "center", padding: "1rem" }}>
-              Waiting for live data...
-            </td>
-          </tr>
-        )}
-
         {events.map((e, idx) => {
           const pred = (e.prediction || "").toUpperCase()
-          const normal = pred === "NORMAL"
-
+          const isNormal = pred === "NORMAL"
           return (
-            <tr key={idx} className={normal ? "table-row-normal" : "table-row-attack"}>
+            <tr
+              key={idx}
+              className={isNormal ? "table-row-normal" : "table-row-attack"}
+            >
               <td>{formatTime(e.timestamp || e.ts_unix)}</td>
-              <td>{e.device_id || "—"}</td>
-              <td>{e.spo2 ?? "—"}%</td>
-              <td>{e.pulse ?? "—"} bpm</td>
+              <td style={{ color: "var(--text-accent)", fontWeight: 600 }}>
+                {e.device_id || "—"}
+              </td>
+              <td style={{ color: "var(--text-primary)", fontWeight: 600 }}>
+                {e.spo2 != null ? `${e.spo2}%` : "—"}
+              </td>
+              <td style={{ color: "var(--text-primary)", fontWeight: 600 }}>
+                {e.pulse != null ? `${e.pulse} bpm` : "—"}
+              </td>
               <td>
-                {normal ? (
-                  <span className="badge badge-normal">✓ NORMAL</span>
+                {isNormal ? (
+                  <span className="badge badge-normal">✓ Normal</span>
                 ) : (
-                  <span className="badge badge-attack">⚠ {pred}</span>
+                  <span className="badge badge-attack">⚠ {pred || "Attack"}</span>
                 )}
               </td>
-              <td>{e.confidence != null ? `${(e.confidence * 100).toFixed(1)}%` : "—"}</td>
+              <td>
+                {e.confidence != null ? (
+                  <ConfidenceBar value={e.confidence} />
+                ) : (
+                  <span style={{ color: "var(--text-muted)" }}>—</span>
+                )}
+              </td>
             </tr>
           )
         })}

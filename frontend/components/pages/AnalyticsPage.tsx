@@ -15,8 +15,6 @@ interface EventRecord {
   ts_unix?: number;
 }
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 const SOCKET_URL =
   process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:8000";
 
@@ -25,13 +23,7 @@ export default function AnalyticsPage() {
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [connected, setConnected] = useState(false);
 
-  // 👉 Socket.IO client for real-time updates
   useEffect(() => {
-    console.log(
-      "[AnalyticsPage] Connecting to Socket.IO server at:",
-      SOCKET_URL
-    );
-
     const socket: Socket = io(SOCKET_URL, {
       transports: ["websocket", "polling"],
       reconnection: true,
@@ -39,66 +31,26 @@ export default function AnalyticsPage() {
       reconnectionAttempts: 10,
     });
 
-    // Connection established
-    socket.on("connect", () => {
-      console.log("[AnalyticsPage] Connected to Socket.IO server");
-      setConnected(true);
-    });
+    socket.on("connect", () => setConnected(true));
 
-    // Connection status event
-    socket.on("connection_status", (data) => {
-      console.log("[AnalyticsPage] Connection status:", data);
-    });
-
-    // Vitals update event from backend
     socket.on("vitals_update", (data: EventRecord) => {
-      console.log("[AnalyticsPage] Received vitals_update:", data);
-
       try {
-        // Add to events list
         setEvents((prev) => [data, ...prev].slice(0, 200));
-
-        // Update stats
         const pred = (data.prediction || "").toUpperCase();
         setStats((prev) => ({
           normal: prev.normal + (pred === "NORMAL" ? 1 : 0),
           attack: prev.attack + (pred === "ATTACK" ? 1 : 0),
         }));
-      } catch (error) {
-        console.error("[AnalyticsPage] Error processing vitals_update:", error);
+      } catch (e) {
+        console.error("[AnalyticsPage] Error:", e);
       }
     });
 
-    // Connection error
-    socket.on("connect_error", (error) => {
-      console.error("[AnalyticsPage] Connection error:", error);
-      setConnected(false);
-    });
+    socket.on("connect_error", () => setConnected(false));
+    socket.on("disconnect", () => setConnected(false));
+    socket.on("reconnect", () => setConnected(true));
 
-    // Disconnection
-    socket.on("disconnect", (reason) => {
-      console.log("[AnalyticsPage] Disconnected:", reason);
-      setConnected(false);
-    });
-
-    // Reconnection attempt
-    socket.on("reconnect_attempt", (attempt) => {
-      console.log(`[AnalyticsPage] Reconnection attempt ${attempt}`);
-    });
-
-    // Reconnection success
-    socket.on("reconnect", (attemptNumber) => {
-      console.log(
-        `[AnalyticsPage] Reconnected after ${attemptNumber} attempts`
-      );
-      setConnected(true);
-    });
-
-    // Cleanup on unmount
-    return () => {
-      console.log("[AnalyticsPage] Disconnecting Socket.IO client");
-      socket.disconnect();
-    };
+    return () => { socket.disconnect(); };
   }, []);
 
   const chartData = useMemo(() => {
@@ -117,77 +69,94 @@ export default function AnalyticsPage() {
   }, [events]);
 
   const total = stats.normal + stats.attack;
+  const normalRate = total ? ((stats.normal / total) * 100).toFixed(1) : "0.0";
+  const attackRate = total ? ((stats.attack / total) * 100).toFixed(1) : "0.0";
+  const highAttack = stats.attack > 10;
 
   return (
     <div>
-      <div style={{ marginBottom: "3rem" }}>
-        <h1
-          className="card-title"
-          style={{ fontSize: "2rem", marginBottom: "0.5rem" }}
+      {/* Page Header */}
+      <div className="page-header">
+        <div className="page-header-left">
+          <div className="page-badge">
+            <span>📊</span> Insights Dashboard
+          </div>
+          <h1 className="page-title">Analytics & Insights</h1>
+          <p className="page-subtitle">
+            Dynamic trend charts and threat pattern analysis
+          </p>
+        </div>
+        <div
+          className={`status-badge${connected ? "" : " offline"}`}
+          style={{ alignSelf: "flex-start" }}
         >
-          Analytics & Insights
-        </h1>
-        <p className="card-subtitle" style={{ fontSize: "1rem" }}>
-          Dynamic charts showing vitals trends and threat patterns
-        </p>
+          <div className="status-dot" />
+          {connected ? "Live Data" : "Offline"}
+        </div>
       </div>
 
-      {/* STATS GRID */}
+      {/* Stats Grid */}
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-label">Connection Status</div>
-          <div className="stat-value" style={{ fontSize: "1.5rem" }}>
-            {connected ? "🟢" : "🔴"}
-          </div>
-          <div className="stat-change">
+        <div className="stat-card stat-card-stagger-1">
+          <div className="stat-icon cyan">📡</div>
+          <div className="stat-label">Connection</div>
+          <div className="stat-value" style={{ fontSize: "1.4rem", color: connected ? "var(--success-light)" : "var(--danger-light)" }}>
             {connected ? "Connected" : "Offline"}
           </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-label">Normal Rate</div>
-          <div className="stat-value">
-            {total ? ((stats.normal / total) * 100).toFixed(1) : "0"}%
+          <div className={`stat-change ${connected ? "positive" : "negative"}`}>
+            {connected ? "✓ Real-time stream active" : "⚠ Reconnecting…"}
           </div>
-          <div className="stat-change">✓ Secure operations</div>
+          <div className="stat-glow-line cyan" />
         </div>
 
-        <div className="stat-card">
+        <div className="stat-card stat-card-stagger-2">
+          <div className="stat-icon green">✅</div>
+          <div className="stat-label">Normal Rate</div>
+          <div className="stat-value green">{normalRate}%</div>
+          <div className="stat-change positive">✓ Secure operations</div>
+          <div className="stat-glow-line green" />
+        </div>
+
+        <div className="stat-card stat-card-stagger-3">
+          <div className="stat-icon red">⚠️</div>
           <div className="stat-label">Attack Rate</div>
           <div
             className="stat-value"
-            style={{
-              background:
-                stats.attack > 10
-                  ? "linear-gradient(135deg, #f87171 0%, #ef4444 100%)"
-                  : undefined,
-              WebkitBackgroundClip: stats.attack > 10 ? "text" : undefined,
-              WebkitTextFillColor:
-                stats.attack > 10 ? "transparent" : undefined,
-              backgroundClip: stats.attack > 10 ? "text" : undefined,
-            }}
+            style={{ color: highAttack ? "var(--danger-light)" : "var(--primary-light)" }}
           >
-            {total ? ((stats.attack / total) * 100).toFixed(1) : "0"}%
+            {attackRate}%
+          </div>
+          <div className={`stat-change ${highAttack ? "negative" : "positive"}`}>
+            {highAttack ? "⚠ Elevated threat" : "✓ Low — within safe range"}
           </div>
           <div
-            className="stat-change"
-            style={{ color: stats.attack > 10 ? "#f87171" : "#34d399" }}
-          >
-            {stats.attack > 10 ? "⚠ Elevated" : "✓ Low"}
-          </div>
+            className="stat-glow-line"
+            style={{
+              background: highAttack
+                ? "linear-gradient(90deg,transparent,var(--danger),transparent)"
+                : "linear-gradient(90deg,transparent,var(--success),transparent)",
+            }}
+          />
         </div>
 
-        <div className="stat-card">
+        <div className="stat-card stat-card-stagger-4">
+          <div className="stat-icon blue">📊</div>
           <div className="stat-label">Total Events</div>
-          <div className="stat-value">{total}</div>
-          <div className="stat-change">📊 Real-time data</div>
+          <div className="stat-value blue">{total}</div>
+          <div className="stat-change">📡 Real-time data stream</div>
+          <div className="stat-glow-line blue" />
         </div>
       </div>
 
-      {/* CHARTS */}
+      {/* Charts */}
       <div className="charts-grid">
         <div className="chart-card">
-          <h3 className="chart-title">Vitals Trend Analysis</h3>
+          <div className="chart-card-header">
+            <h3 className="chart-title">
+              📈 Vitals Trend Analysis
+            </h3>
+            <span className="chart-badge">Live · Last 40</span>
+          </div>
           <div className="chart-container">
             <LineChart
               labels={chartData.labels}
@@ -198,178 +167,52 @@ export default function AnalyticsPage() {
         </div>
 
         <div className="chart-card">
-          <h3 className="chart-title">Event Distribution</h3>
+          <div className="chart-card-header">
+            <h3 className="chart-title">
+              🍩 Event Distribution
+            </h3>
+            <span className="chart-badge">All Events</span>
+          </div>
           <div className="chart-container">
             <DonutChart normal={stats.normal} attack={stats.attack} />
           </div>
         </div>
       </div>
 
-      {/* THREAT ANALYSIS */}
-      <div className="card" style={{ marginTop: "2rem" }}>
+      {/* Threat Analysis */}
+      <div className="card" style={{ marginTop: "1.25rem" }}>
         <div className="card-header">
           <div>
-            <h3 className="card-title">Threat Analysis Summary</h3>
-            <p className="card-subtitle">Real-time threat detection metrics</p>
+            <h3 className="card-title">🔍 Threat Analysis Summary</h3>
+            <p className="card-subtitle">
+              Real-time detection metrics from TwinGuard AI engine
+            </p>
           </div>
         </div>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "1.5rem",
-          }}
-        >
-          <div
-            style={{
-              padding: "1.5rem",
-              background: "rgba(16, 185, 129, 0.05)",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid rgba(16, 185, 129, 0.2)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "0.85rem",
-                color: "var(--color-text-muted)",
-                fontWeight: "600",
-                marginBottom: "0.5rem",
-              }}
-            >
-              NORMAL DETECTIONS
-            </div>
-            <div
-              style={{
-                fontSize: "1.75rem",
-                fontWeight: "700",
-                color: "var(--color-success-light)",
-              }}
-            >
-              {stats.normal}
-            </div>
-            <div
-              style={{
-                fontSize: "0.8rem",
-                color: "var(--color-success)",
-                marginTop: "0.5rem",
-              }}
-            >
-              ↑ Secure trend
-            </div>
+
+        <div className="threat-grid">
+          <div className="threat-mini-card green">
+            <div className="threat-mini-label">Normal Detections</div>
+            <div className="threat-mini-value">{stats.normal}</div>
+            <div className="threat-mini-sub">↑ Secure trend</div>
           </div>
 
-          <div
-            style={{
-              padding: "1.5rem",
-              background: "rgba(239, 68, 68, 0.05)",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid rgba(239, 68, 68, 0.2)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "0.85rem",
-                color: "var(--color-text-muted)",
-                fontWeight: "600",
-                marginBottom: "0.5rem",
-              }}
-            >
-              ATTACK DETECTIONS
-            </div>
-            <div
-              style={{
-                fontSize: "1.75rem",
-                fontWeight: "700",
-                color: "var(--color-danger-light)",
-              }}
-            >
-              {stats.attack}
-            </div>
-            <div
-              style={{
-                fontSize: "0.8rem",
-                color: "var(--color-danger)",
-                marginTop: "0.5rem",
-              }}
-            >
-              ⚠ Monitor closely
-            </div>
+          <div className="threat-mini-card red">
+            <div className="threat-mini-label">Attack Detections</div>
+            <div className="threat-mini-value">{stats.attack}</div>
+            <div className="threat-mini-sub">⚠ Monitor closely</div>
           </div>
 
-          <div
-            style={{
-              padding: "1.5rem",
-              background: "rgba(59, 130, 246, 0.05)",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid rgba(59, 130, 246, 0.2)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "0.85rem",
-                color: "var(--color-text-muted)",
-                fontWeight: "600",
-                marginBottom: "0.5rem",
-              }}
-            >
-              DETECTION ACCURACY
-            </div>
-            <div
-              style={{
-                fontSize: "1.75rem",
-                fontWeight: "700",
-                color: "var(--color-primary-light)",
-              }}
-            >
-              97.2%
-            </div>
-            <div
-              style={{
-                fontSize: "0.8rem",
-                color: "var(--color-primary)",
-                marginTop: "0.5rem",
-              }}
-            >
-              ✓ High precision
-            </div>
+          <div className="threat-mini-card blue">
+            <div className="threat-mini-label">Detection Accuracy</div>
+            <div className="threat-mini-value">97.2%</div>
+            <div className="threat-mini-sub">✓ High precision</div>
           </div>
 
-          <div
-            style={{
-              padding: "1.5rem",
-              background: "rgba(245, 158, 11, 0.05)",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid rgba(245, 158, 11, 0.2)",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "0.85rem",
-                color: "var(--color-text-muted)",
-                fontWeight: "600",
-                marginBottom: "0.5rem",
-              }}
-            >
-              RESPONSE TIME
-            </div>
-            <div
-              style={{
-                fontSize: "1.75rem",
-                fontWeight: "700",
-                color: "var(--color-warning)",
-              }}
-            >
-              24ms
-            </div>
-            <div
-              style={{
-                fontSize: "0.8rem",
-                color: "var(--color-warning)",
-                marginTop: "0.5rem",
-              }}
-            >
-              ✓ Real-time
-            </div>
+          <div className="threat-mini-card amber">
+            <div className="threat-mini-label">Response Time</div>
+            <div className="threat-mini-value">24ms</div>
+            <div className="threat-mini-sub">✓ Real-time</div>
           </div>
         </div>
       </div>
